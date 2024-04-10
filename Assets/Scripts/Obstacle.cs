@@ -1,32 +1,31 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Obstacle : MonoBehaviour
 {
-    public float speed = 0.5f; // Adjust this to control the speed of movement
-    private bool movingRight = false;
+    private LevelManager levelManager;
+
+    [SerializeField] private bool movingRight;
+    public float speed;
     private float screenWidth;
-    private float platformWidth;
+    private float obstacleWidth;
+
+    [SerializeField] private GameObject child;
 
     private void Start()
     {
+        levelManager = FindObjectOfType<LevelManager>();
+
         screenWidth = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0f, 0f)).x;
 
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        SpriteRenderer spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         Vector3 screenPos1 = Camera.main.WorldToScreenPoint(spriteRenderer.bounds.min);
         Vector3 screenPos2 = Camera.main.WorldToScreenPoint(spriteRenderer.bounds.max);
 
-        // Calculate the size of the object in pixels
         float widthInPixels = Mathf.Abs(screenPos2.x - screenPos1.x);
-        float heightInPixels = Mathf.Abs(screenPos2.y - screenPos1.y);
 
-        // Output the size of the object in pixels
-        Debug.Log("Width in pixels: " + widthInPixels + ", Height in pixels: " + heightInPixels);
+        obstacleWidth = Camera.main.ScreenToWorldPoint(new Vector3(widthInPixels, 0f, 0f)).x;
 
-        platformWidth = Camera.main.ScreenToWorldPoint(new Vector3(widthInPixels, 0f, 0f)).x;
-
-        Debug.Log("platformWidth: " + platformWidth);
+        Debug.Log("platformWidth: " + obstacleWidth);
     }
 
     void Update()
@@ -38,12 +37,12 @@ public class Obstacle : MonoBehaviour
             transform.Translate(Vector3.left * speed * Time.deltaTime);
 
         // Check if the object has reached the screen edge
-        if (transform.position.x >= screenWidth + platformWidth / 2)
+        if (transform.position.x >= screenWidth + obstacleWidth / 3)
         {
             // If at the right edge, change direction to left
             movingRight = false;
         }
-        else if (transform.position.x <= -screenWidth - platformWidth / 2)
+        else if (transform.position.x <= -screenWidth - obstacleWidth / 3)
         {
             // If at the left edge, change direction to right
             movingRight = true;
@@ -55,7 +54,9 @@ public class Obstacle : MonoBehaviour
         if (collision.CompareTag("Coin"))
         {
             Debug.Log("collision " + collision);
-            Destroy(collision.gameObject);
+            levelManager.DestroyCoin();
+            levelManager.CoinFail();
+            //levelManager.CheckEndLevel();
         }
     }
 }
